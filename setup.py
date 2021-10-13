@@ -40,12 +40,27 @@ PROTO_REQUIRES = ['protobuf'] + SCHEMA_REGISTRY_REQUIRES
 # On Un*x the library is linked as -lrdkafka,
 # while on windows we need the full librdkafka name.
 if platform.system() == 'Windows':
-    librdkafka_libname = 'librdkafka'
+    libraries = ['librdkafka']
+elif platform.system() == 'OpenVMS':
+    # Note: do not forget to "$define LIBRDKAFKA LIBRDKAFKA$ROOT:[include]" before setup
+    if not os.getenv('librdkafka$root', None):
+        raise Exception("librdkafka is not installed")
+    if not os.getenv('ssl111$root', None):
+        raise Exception("ssl111 is not installed")
+    if not os.getenv('oss$root', None):
+        raise Exception("oss is not installed")
+    libraries = [
+        'librdkafka$root:[lib]librdkafka.olb',
+        'ssl111$root:[lib]ssl111$libssl32.olb',
+        'ssl111$root:[lib]ssl111$libcrypto32.olb',
+        'oss$root:[lib]libz32.olb',
+        'oss$root:[lib]libregex.olb',
+    ]
 else:
-    librdkafka_libname = 'rdkafka'
+    libraries = ['rdkafka']
 
 module = Extension('confluent_kafka.cimpl',
-                   libraries=[librdkafka_libname],
+                   libraries=libraries,
                    sources=[os.path.join(ext_dir, 'confluent_kafka.c'),
                             os.path.join(ext_dir, 'Producer.c'),
                             os.path.join(ext_dir, 'Consumer.c'),

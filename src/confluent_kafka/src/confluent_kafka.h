@@ -83,6 +83,9 @@
 #if _WIN32
 #define CFL_UNUSED
 #define CFL_INLINE __inline
+#elif defined(__VMS)
+#define CFL_UNUSED
+#define CFL_INLINE
 #else
 #define CFL_UNUSED __attribute__((unused))
 #define CFL_INLINE __inline
